@@ -1,0 +1,5 @@
+.idea
+python-verisure
+testdata/data/*
+!testdata/data/.gitkeep
+deployment.yaml

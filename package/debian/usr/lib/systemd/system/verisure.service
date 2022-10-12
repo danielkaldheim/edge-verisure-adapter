@@ -1,0 +1,14 @@
+[Unit]
+Description=verisure
+
+[Service]
+Type=simple
+ExecStart=/opt/thingsplex/verisure/verisure
+User=verisure
+WorkingDirectory=/opt/thingsplex/verisure
+Restart=always
+StandardOutput=null
+StandardError=null
+
+[Install]
+WantedBy=multi-user.target

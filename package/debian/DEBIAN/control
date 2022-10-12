@@ -1,0 +1,8 @@
+Package: verisure
+Version: 0.0.1
+Replaces: verisure
+Section: non-free/misc
+Priority: optional
+Architecture: armhf
+Maintainer: your namae <dev@your-app.com>
+Description: . futurehome app  

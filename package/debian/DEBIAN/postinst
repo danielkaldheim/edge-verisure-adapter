@@ -1,0 +1,31 @@
+#!/bin/sh
+set -e
+
+if [ "$1" = "configure" ]
+then
+  groupadd -r thingsplex || true
+  groupadd -r verisure || true
+
+  useradd -r -N -M -d / -s /bin/false -g thingsplex verisure || true
+
+  chown -R verisure:thingsplex /var/log/thingsplex/verisure/ || true
+  chown -R verisure:verisure /opt/thingsplex/verisure/ || true
+fi
+
+deb-systemd-helper unmask verisure.service >/dev/null || true
+
+if deb-systemd-helper --quiet was-enabled verisure.service; then
+  systemctl enable verisure.service || true
+else
+  deb-systemd-helper update-state verisure.service >/dev/null || true
+fi
+
+if [ -d /run/systemd/system ]; then
+  systemctl --system daemon-reload >/dev/null || true
+
+  if [ -n "$2" ]; then
+    deb-systemd-invoke try-restart verisure.service >/dev/null || true
+  else
+    deb-systemd-invoke start verisure.service >/dev/null || true
+  fi
+fi
