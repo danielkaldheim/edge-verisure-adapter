@@ -1,10 +1,21 @@
-# Verisure edge app for Future Home
+# Verisure edge adapter
 
-Verisure api inspired from [https://github.com/persandstrom/python-verisure](https://github.com/persandstrom/python-verisure).
+App for Futurehome that uses Verisure GraphQL API to get Verisure device state.
 
-## Supports
+## Services and capabilities
+
+Uses the FIMP services to send climate, door and window sensor and smart lock reports to Futurehome
+[Futurehome FIMP API](https://github.com/futurehomeno/fimp-api)
+
+### Verisure devices
 
 - [x] Climate
 - [x] Doors and windows
 - [x] Smart Locks
+  - [x] Lock / unlock with predefined pin
+  - [ ] Lock / unlock with pin on demand (via FH)
 - [ ] Smart plugs
+
+## Thanks
+
+The Verisure API is inspired from [https://github.com/persandstrom/python-verisure](https://github.com/persandstrom/python-verisure). Thanks!
