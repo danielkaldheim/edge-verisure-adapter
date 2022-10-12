@@ -137,9 +137,82 @@ func (fc *FromFimpRouter) routeFimpMessage(newMsg *fimpgo.Message) {
 						adr := &fimpgo.Address{MsgType: fimpgo.MsgTypeEvt, ResourceType: fimpgo.ResourceTypeDevice, ResourceName: model.ServiceName, ResourceAddress: "1", ServiceName: "door_lock", ServiceAddress: deviceId}
 						msg := fimpgo.NewMessage("evt.lock.report", "door_lock", fimpgo.VTypeBoolMap, stateVal, props, nil, nil)
 						fc.mqt.Publish(adr, msg)
+						break
 					}
 				}
 				fc.states.SmartLocks = locks
+				fc.states.SaveToFile()
+			}
+		}
+	case "sensor_temp":
+		addr = strings.Replace(addr, "l", "", 1)
+		switch newMsg.Payload.Type {
+		case "cmd.sensor.get_report":
+			bk := fc.states.GetClimateByDeviceLabel(addr)
+			climates, err := fc.client.FetchClimate()
+			if err != nil {
+				log.Error(err)
+			}
+			if len(climates) > 0 {
+				for _, climate := range climates {
+					if bk.Device.DeviceLabel == climate.Device.DeviceLabel {
+						if bk != nil && climate.TemperatureTimestamp == bk.TemperatureTimestamp {
+							break
+						}
+						deviceId := strings.ReplaceAll(climate.Device.DeviceLabel, " ", "")
+						tempVal := climate.TemperatureValue
+						props := fimpgo.Props{}
+						props["unit"] = "C"
+
+						adr := &fimpgo.Address{MsgType: fimpgo.MsgTypeEvt, ResourceType: fimpgo.ResourceTypeDevice, ResourceName: model.ServiceName, ResourceAddress: "1", ServiceName: "sensor_temp", ServiceAddress: deviceId}
+						msg := fimpgo.NewMessage("evt.sensor.report", "sensor_temp", fimpgo.VTypeFloat, tempVal, props, nil, nil)
+						fc.mqt.Publish(adr, msg)
+
+						if climate.HumidityEnabled {
+							humidityVal := climate.HumidityValue
+							props := fimpgo.Props{}
+							props["unit"] = "%"
+
+							adr := &fimpgo.Address{MsgType: fimpgo.MsgTypeEvt, ResourceType: fimpgo.ResourceTypeDevice, ResourceName: model.ServiceName, ResourceAddress: "1", ServiceName: "sensor_humid", ServiceAddress: deviceId}
+							msg := fimpgo.NewMessage("evt.sensor.report", "sensor_humid", fimpgo.VTypeFloat, humidityVal, props, nil, nil)
+							fc.mqt.Publish(adr, msg)
+						}
+						break
+					}
+				}
+				fc.states.Climates = climates
+				fc.states.SaveToFile()
+			}
+		}
+
+	case "sensor_contact":
+		addr = strings.Replace(addr, "l", "", 1)
+		switch newMsg.Payload.Type {
+		case "cmd.open.get_report":
+			bk := fc.states.GetDoorWindowByDeviceLabel(addr)
+			doorsAndWindows, err := fc.client.FetchDoorWindow()
+			if err != nil {
+				log.Error(err)
+			}
+			if len(doorsAndWindows) > 0 {
+				for _, daw := range doorsAndWindows {
+					if bk.Device.DeviceLabel == daw.Device.DeviceLabel {
+						if bk != nil && daw.ReportTime == bk.ReportTime {
+							break
+						}
+						deviceId := strings.ReplaceAll(daw.Device.DeviceLabel, " ", "")
+						stateVal := false
+						if daw.State == "OPEN" {
+							stateVal = true
+						}
+
+						adr := &fimpgo.Address{MsgType: fimpgo.MsgTypeEvt, ResourceType: fimpgo.ResourceTypeDevice, ResourceName: model.ServiceName, ResourceAddress: "1", ServiceName: "sensor_contact", ServiceAddress: deviceId}
+						msg := fimpgo.NewMessage("evt.open.report", "sensor_contact", fimpgo.VTypeBool, stateVal, nil, nil, nil)
+						fc.mqt.Publish(adr, msg)
+						break
+					}
+				}
+				fc.states.DoorWindows = doorsAndWindows
 				fc.states.SaveToFile()
 			}
 		}
